@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Counter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #0a0a0f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Sans', sans-serif;
+      padding: 2rem;
+    }
+    .card {
+      background: #13131a;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 3rem 3.5rem;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%; transform: translateX(-50%);
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(99,102,241,0.12);
+      border: 0.5px solid rgba(99,102,241,0.3);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #a5b4fc;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+    .dot { width: 6px; height: 6px; background: #6366f1; border-radius: 50%; }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: #f1f0ff;
+      margin-bottom: 0.5rem;
+    }
+    .subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+    .number-box {
+      background: rgba(255,255,255,0.03);
+      border: 0.5px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .number-label {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 0.5rem;
+    }
+    .count {
+      font-family: 'Playfair Display', serif;
+      font-size: 5rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1;
+    }
+    .count span { color: #6366f1; }
+    .divider { height: 0.5px; background: rgba(255,255,255,0.06); margin-bottom: 1.5rem; }
+    .stats { display: flex; justify-content: center; gap: 2rem; }
+    .stat-num { font-size: 1.1rem; font-weight: 500; color: #e2e2f0; }
+    .stat-lbl { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 2px; }
+    .footer { margin-top: 2rem; font-size: 12px; color: rgba(255,255,255,0.15); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge"><div class="dot"></div> Live tracking</div>
+    <h1>Visitor Analytics</h1>
+    <p class="subtitle">Real-time counter built with Django</p>
+    <div class="number-box">
+      <div class="number-label">total visitors</div>
+      <div class="count">{{ count }}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stats">
+      <div><div class="stat-num">Django</div><div class="stat-lbl">Backend</div></div>
+      <div><div class="stat-num">SQLite</div><div class="stat-lbl">Database</div></div>
+      <div><div class="stat-num">Python</div><div class="stat-lbl">Language</div></div>
+    </div>
+    <div class="footer">Built with Python · Django · SQLite</div>
+  </div>
+</body>
+</html>
