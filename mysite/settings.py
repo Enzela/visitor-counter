@@ -54,7 +54,8 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"
+        default='postgresql://visitordb_i36u_user:YJlgP1hhOFUXCcnE2btxwd0C8dxs0z5N@dpg-d8a53bh9rddc739psof0-a.virginia-postgres.render.com/visitordb_i36u',
+        conn_max_age=600
     )
 }
 
