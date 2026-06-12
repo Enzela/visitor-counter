@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import VisitorLog
+from collections import Counter
 import json
-import urllib.request
 
 def home(request):
     return render(request, 'counter/home.html')
@@ -48,56 +48,47 @@ def api_ai_analyze(request):
             'ip': v['ip_address'],
             'time': v['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if v['timestamp'] else ''
         })
-    return JsonResponse({
-        'visitor_data': visitor_data,
-        'total': len(visitor_data)
-    })
+    return JsonResponse({'visitor_data': visitor_data, 'total': len(visitor_data)})
 
-# API 6 - AI Result from Claude
+# API 6 - AI Result using Python logic
 @csrf_exempt
 def api_ai_result(request):
     visitors = list(
         VisitorLog.objects.order_by('-timestamp').values('ip_address', 'timestamp')
     )
-    visitor_data = []
-    for v in visitors:
-        visitor_data.append({
-            'ip': v['ip_address'],
-            'time': v['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if v['timestamp'] else ''
+
+    if not visitors:
+        return JsonResponse({
+            'analysis': 'PEAK HOURS: No data yet\nBOT DETECTION: No data yet\nPATTERN SUMMARY: No visitors recorded yet.',
+            'status': 'success'
         })
 
-    prompt = f"""Analyze this visitor data and provide exactly 3 sections:
-PEAK HOURS: Which hours get the most traffic?
-BOT DETECTION: Any suspicious IPs or bot-like behavior?
-PATTERN SUMMARY: 2-3 sentence plain English summary.
+    # Peak Hours Analysis
+    hours = [v['timestamp'].hour for v in visitors if v['timestamp']]
+    hour_counts = Counter(hours)
+    peak_hour = max(hour_counts, key=hour_counts.get)
+    top_hours = sorted(hour_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+    peak_analysis = f"Peak traffic at {peak_hour}:00 - {peak_hour+1}:00 with {hour_counts[peak_hour]} visits. "
+    peak_analysis += f"Top hours: {', '.join([f'{h}:00 ({c} visits)' for h, c in top_hours])}"
 
-Data ({len(visitor_data)} visitors):
-{json.dumps(visitor_data, indent=2)}
+    # Bot Detection
+    ip_counts = Counter([v['ip_address'] for v in visitors])
+    suspicious = [(ip, count) for ip, count in ip_counts.items() if count > 5]
+    if suspicious:
+        bot_analysis = f"Suspicious IPs detected: {', '.join([f'{ip} ({c} visits)' for ip, c in suspicious])}"
+    else:
+        bot_analysis = f"No suspicious activity detected. All {len(ip_counts)} unique IPs appear normal."
 
-Format exactly like:
-PEAK HOURS: [analysis]
-BOT DETECTION: [analysis]
-PATTERN SUMMARY: [analysis]"""
+    # Pattern Summary
+    total = len(visitors)
+    unique_ips = len(ip_counts)
+    summary = f"Site received {total} total visits from {unique_ips} unique visitors. "
+    if total > 10:
+        summary += "Traffic is growing steadily. "
+    else:
+        summary += "Site is in early stages with low traffic. "
+    summary += f"Most active hour is {peak_hour}:00."
 
-    payload = json.dumps({
-        "model": "claude-sonnet-4-6",
-        "max_tokens": 1000,
-        "messages": [{"role": "user", "content": prompt}]
-    }).encode('utf-8')
+    analysis = f"PEAK HOURS: {peak_analysis}\nBOT DETECTION: {bot_analysis}\nPATTERN SUMMARY: {summary}"
 
-    req = urllib.request.Request(
-        'https://api.anthropic.com/v1/messages',
-        data=payload,
-        headers={
-            'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01'
-        }
-    )
-
-    try:
-        with urllib.request.urlopen(req) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            text = result['content'][0]['text']
-            return JsonResponse({'analysis': text, 'status': 'success'})
-    except Exception as e:
-        return JsonResponse({'analysis': str(e), 'status': 'error'})
+    return JsonResponse({'analysis': analysis, 'status': 'success'})
