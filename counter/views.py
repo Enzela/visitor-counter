@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .models import VisitorLog
 
 def home(request):
@@ -32,3 +33,20 @@ def api_all(request):
         VisitorLog.objects.order_by('-timestamp').values('ip_address', 'timestamp')
     )
     return JsonResponse({'total': len(visitors), 'visitors': visitors})
+
+# API 5 - AI Analysis data
+@csrf_exempt
+def api_ai_analyze(request):
+    visitors = list(
+        VisitorLog.objects.order_by('-timestamp').values('ip_address', 'timestamp')
+    )
+    visitor_data = []
+    for v in visitors:
+        visitor_data.append({
+            'ip': v['ip_address'],
+            'time': v['timestamp'].strftime('%Y-%m-%d %H:%M:%S') if v['timestamp'] else ''
+        })
+    return JsonResponse({
+        'visitor_data': visitor_data,
+        'total': len(visitor_data)
+    })
